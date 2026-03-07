@@ -90,6 +90,43 @@
                     rgba(28, 35, 33, 0.03) 8px,
                     transparent 8px,
                     transparent 18px);
+            overflow: hidden;
+        }
+
+        .room.room-living {
+            background:
+                radial-gradient(circle at 20% 15%, rgba(255, 220, 160, 0.55), transparent 35%),
+                linear-gradient(140deg, rgba(252, 241, 220, 0.85), rgba(222, 237, 227, 0.82)),
+                repeating-linear-gradient(90deg, rgba(136, 91, 64, 0.12) 0 6px, transparent 6px 22px);
+            background-image:
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.36)),
+                url("./assets/living-room.svg");
+            background-size: cover, cover;
+            background-position: center, center;
+        }
+
+        .room.room-kitchen {
+            background:
+                radial-gradient(circle at 78% 20%, rgba(170, 214, 232, 0.45), transparent 34%),
+                linear-gradient(140deg, rgba(235, 247, 255, 0.9), rgba(228, 240, 229, 0.84)),
+                repeating-linear-gradient(0deg, rgba(35, 76, 104, 0.08) 0 2px, transparent 2px 24px);
+            background-image:
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.3)),
+                url("./assets/kitchen.svg");
+            background-size: cover, cover;
+            background-position: center, center;
+        }
+
+        .room.room-study {
+            background:
+                radial-gradient(circle at 35% 24%, rgba(218, 190, 130, 0.4), transparent 36%),
+                linear-gradient(150deg, rgba(244, 236, 211, 0.88), rgba(222, 229, 204, 0.84)),
+                repeating-linear-gradient(90deg, rgba(79, 62, 39, 0.1) 0 3px, transparent 3px 18px);
+            background-image:
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.3)),
+                url("./assets/study.svg");
+            background-size: cover, cover;
+            background-position: center, center;
         }
 
         .time-wrap {
@@ -109,77 +146,122 @@
             transition: transform 0.2s linear;
         }
 
-        .object-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(120px, 1fr));
-            gap: 12px;
-        }
-
-        .object {
+        .room-scene {
+            position: relative;
+            height: 370px;
             border: 1px solid var(--line);
             border-radius: 14px;
-            background: var(--card);
-            min-height: 110px;
-            padding: 10px;
-            display: grid;
-            align-content: space-between;
-            cursor: pointer;
-            transform: translateY(0);
-            transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
-            user-select: none;
+            margin-bottom: 8px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(0, 0, 0, 0.04));
+            overflow: hidden;
+            z-index: 2;
         }
 
-        .object:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(28, 35, 33, 0.10);
+        .room-scene::before,
+        .room-scene::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            width: 22px;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(28, 35, 33, 0.16) 0 8px, rgba(28, 35, 33, 0.05) 8px 16px);
         }
 
-        .object .name {
-            font-size: 0.98rem;
+        .room-scene::before {
+            left: 0;
+        }
+
+        .room-scene::after {
+            right: 0;
+        }
+
+        .nav-hint {
+            position: absolute;
+            left: 12px;
+            top: 10px;
+            font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.02em;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.78);
+            z-index: 7;
         }
 
-        .object .state {
-            font-size: 0.85rem;
-            opacity: 0.88;
+        .object-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
         }
 
-        .object.intact {
+        .map-object {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            min-width: 72px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 5px 7px;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            text-align: left;
+            background: rgba(255, 250, 241, 0.9);
+            cursor: pointer;
+            transition: box-shadow 120ms ease, transform 120ms ease;
+            pointer-events: auto;
+        }
+
+        .map-object:hover {
+            transform: translate(-50%, -50%) scale(1.02);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .map-object .obj-name {
+            display: block;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .map-object .obj-state {
+            display: block;
+            font-size: 0.66rem;
+            margin-top: 2px;
+            opacity: 0.85;
+        }
+
+        .map-object.intact {
             border-color: rgba(45, 127, 63, 0.35);
         }
 
-        .object.knocked {
-            border-color: rgba(193, 124, 0, 0.55);
-            background: #fff3df;
+        .map-object.knocked {
+            border-color: rgba(193, 124, 0, 0.62);
+            background: rgba(255, 240, 214, 0.95);
         }
 
-        .object.shattered {
-            border-color: rgba(181, 49, 44, 0.62);
-            background: #ffe9e6;
-            animation: jitter 220ms linear 1;
+        .map-object.shattered {
+            border-color: rgba(181, 49, 44, 0.65);
+            background: rgba(255, 231, 228, 0.96);
         }
 
-        @keyframes jitter {
-            0% {
-                transform: translateX(0);
-            }
+        .map-object.near {
+            box-shadow: 0 0 0 2px rgba(27, 127, 107, 0.3);
+        }
 
-            25% {
-                transform: translateX(-2px);
-            }
+        .player-token {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid rgba(17, 20, 19, 0.75);
+            background: radial-gradient(circle at 38% 36%, #fff8e1 0 28%, #d28922 29% 100%);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+            transform: translate(-50%, -50%);
+            transition: transform 70ms linear;
+            z-index: 6;
+        }
 
-            50% {
-                transform: translateX(2px);
-            }
-
-            75% {
-                transform: translateX(-1px);
-            }
-
-            100% {
-                transform: translateX(0);
-            }
+        .player-token.moving {
+            box-shadow: 0 10px 14px rgba(0, 0, 0, 0.28);
         }
 
         .side {
@@ -220,6 +302,28 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+        }
+
+        .room-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(70px, 1fr));
+            gap: 8px;
+        }
+
+        .room-tab {
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .room-tag {
+            display: inline-block;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.82rem;
+            background: rgba(255, 255, 255, 0.74);
+            margin-bottom: 10px;
         }
 
         button {
@@ -338,8 +442,13 @@
                 border-bottom: 1px solid var(--line);
             }
 
-            .object-grid {
-                grid-template-columns: repeat(2, minmax(120px, 1fr));
+            .room-scene {
+                height: 320px;
+            }
+
+            .map-object {
+                min-width: 64px;
+                font-size: 0.69rem;
             }
         }
     </style>
@@ -352,6 +461,7 @@
             <div class="stat" id="scoreStat">Score: 0</div>
             <div class="stat" id="glueStat">Glue: 0</div>
             <div class="stat" id="timeStat">Time: 75</div>
+            <div class="stat" id="roomStat">Dirty Rooms: 0</div>
         </header>
 
         <section class="layout">
@@ -359,15 +469,25 @@
                 <div class="time-wrap">
                     <div class="time-fill" id="timeFill"></div>
                 </div>
-                <div class="object-grid" id="objectGrid"></div>
+                <div class="room-tag" id="roomTag">Room: Living Room</div>
+                <div class="room-scene" id="roomScene">
+                    <div class="nav-hint" id="navHint">Arrow keys to move. Reach edges to change rooms.</div>
+                    <div class="object-layer" id="objectLayer"></div>
+                    <div class="player-token" id="playerToken"></div>
+                </div>
 
                 <div class="overlay" id="startOverlay">
                     <div class="modal">
                         <h2>House-Sit Disaster Simulator</h2>
-                        <p>Touch objects to make a mess. Before the host returns, everything must look perfect.</p>
+                        <p>Touch objects to make a mess across multiple rooms. Before the host returns, everything must
+                            look perfect.</p>
                         <p><strong>Mess mode:</strong> click an object to knock or shatter it.</p>
                         <p><strong>Fix mode:</strong> click a knocked item to stand it up, or a shattered item to repair
                             it with glue.</p>
+                        <p><strong>Inspect:</strong> double-click nearby map objects for intel and occasional glue
+                            finds.</p>
+                        <p><strong>Move:</strong> use arrow keys to walk; hit left/right room edges to pass through
+                            doors.</p>
                         <p>Use mode buttons on mobile or desktop. Survive 75 seconds with no visible damage.</p>
                         <button id="startBtn">Start Run</button>
                     </div>
@@ -394,15 +514,27 @@
                 </section>
 
                 <section class="panel">
+                    <h3>Rooms</h3>
+                    <div class="room-tabs" id="roomTabs"></div>
+                    <p style="margin-top:8px;">Shortcuts: press <strong>1</strong>, <strong>2</strong>,
+                        <strong>3</strong>.
+                    </p>
+                </section>
+
+                <section class="panel">
                     <h3>Missions</h3>
                     <ul id="missionList"></ul>
                 </section>
 
                 <section class="panel">
                     <h3>How It Works</h3>
-                    <p>If the NPC sees anything out of place when time ends, you fail instantly.</p>
+                    <p>If the NPC sees anything out of place in any room when time ends, you fail instantly.</p>
                     <p style="margin-top:8px;">Grab floating glue drops before they vanish to repair shattered objects.
                     </p>
+                    <div class="controls" style="margin-top:10px;">
+                        <button id="quickTidyBtn">Quick Tidy (-2s)</button>
+                        <button id="searchRoomBtn">Search Room (-3s)</button>
+                    </div>
                 </section>
 
                 <section class="panel">
@@ -417,20 +549,56 @@
         const GAME_SECONDS = 75;
         const GLUE_LIFETIME = 6500;
 
-        const OBJECT_NAMES = [
-            "Ceramic Vase",
-            "Desk Lamp",
-            "Photo Frame",
-            "Tea Cup",
-            "Potted Fern",
-            "Stacked Books",
-            "Wall Clock",
-            "Glass Bowl",
-            "Speaker",
-            "Antique Statue",
-            "Chess Set",
-            "Table Mirror"
+        const ROOMS = [
+            {
+                id: "living",
+                name: "Living Room",
+                objects: [
+                    "Ceramic Vase",
+                    "Desk Lamp",
+                    "Photo Frame",
+                    "Chess Set",
+                    "Table Mirror",
+                    "Speaker",
+                    "Stacked Books",
+                    "Glass Bowl"
+                ]
+            },
+            {
+                id: "kitchen",
+                name: "Kitchen",
+                objects: [
+                    "Tea Cup",
+                    "Fruit Bowl",
+                    "Spice Rack",
+                    "Cutting Board",
+                    "Kettle",
+                    "Cookie Jar",
+                    "Wine Glasses",
+                    "Plate Stack"
+                ]
+            },
+            {
+                id: "study",
+                name: "Study",
+                objects: [
+                    "Antique Statue",
+                    "Wall Clock",
+                    "Potted Fern",
+                    "Ink Bottle",
+                    "Globe",
+                    "Typewriter",
+                    "Bookend Pair",
+                    "Document Tray"
+                ]
+            }
         ];
+
+        const ROOM_OBJECT_POINTS = {
+            living: [[0.15, 0.76], [0.3, 0.72], [0.44, 0.71], [0.58, 0.75], [0.73, 0.74], [0.86, 0.7], [0.48, 0.88], [0.68, 0.88]],
+            kitchen: [[0.16, 0.73], [0.3, 0.74], [0.45, 0.72], [0.6, 0.74], [0.76, 0.74], [0.88, 0.72], [0.37, 0.88], [0.7, 0.88]],
+            study: [[0.14, 0.7], [0.29, 0.72], [0.44, 0.7], [0.6, 0.71], [0.74, 0.73], [0.87, 0.73], [0.52, 0.88], [0.7, 0.88]]
+        };
 
         const state = {
             running: false,
@@ -438,28 +606,44 @@
             timeLeft: GAME_SECONDS,
             score: 0,
             glue: 0,
-            objects: [],
+            currentRoomId: ROOMS[0].id,
+            objectsByRoom: {},
             interactions: 0,
             knockedCount: 0,
             shatteredCount: 0,
             repairedCount: 0,
+            inspectedCount: 0,
             activeDrops: new Map(),
+            visitedRooms: new Set(),
+            player: { x: 140, y: 80, speed: 4.2 },
+            pressed: { up: false, down: false, left: false, right: false },
             tickTimer: null,
             dropTimer: null,
+            eventTimer: null,
+            movementFrame: null,
+            justTeleportedAt: 0,
             missions: [
                 { id: "chaos", text: "Cause 8+ mess actions", done: false },
                 { id: "smash", text: "Shatter 4 objects", done: false },
                 { id: "recover", text: "Repair or tidy 6 objects", done: false },
+                { id: "explorer", text: "Visit all 3 rooms", done: false },
+                { id: "inspector", text: "Inspect 6 objects", done: false },
                 { id: "pacifist", text: "Win with 0 interactions", done: false }
             ]
         };
 
-        const objectGrid = document.getElementById("objectGrid");
+        const objectLayer = document.getElementById("objectLayer");
         const roomArea = document.getElementById("roomArea");
         const scoreStat = document.getElementById("scoreStat");
         const glueStat = document.getElementById("glueStat");
         const timeStat = document.getElementById("timeStat");
+        const roomStat = document.getElementById("roomStat");
         const timeFill = document.getElementById("timeFill");
+        const roomTag = document.getElementById("roomTag");
+        const roomTabs = document.getElementById("roomTabs");
+        const roomScene = document.getElementById("roomScene");
+        const navHint = document.getElementById("navHint");
+        const playerToken = document.getElementById("playerToken");
         const missionList = document.getElementById("missionList");
         const eventLog = document.getElementById("eventLog");
 
@@ -473,13 +657,31 @@
         const restartBtn = document.getElementById("restartBtn");
         const messModeBtn = document.getElementById("messModeBtn");
         const fixModeBtn = document.getElementById("fixModeBtn");
+        const quickTidyBtn = document.getElementById("quickTidyBtn");
+        const searchRoomBtn = document.getElementById("searchRoomBtn");
+
+        function getCurrentRoom() {
+            return ROOMS.find((room) => room.id === state.currentRoomId);
+        }
+
+        function getCurrentObjects() {
+            return state.objectsByRoom[state.currentRoomId] || [];
+        }
 
         function resetObjects() {
-            state.objects = OBJECT_NAMES.map((name, index) => ({
-                id: index,
-                name,
-                status: "intact"
-            }));
+            state.objectsByRoom = {};
+            for (const room of ROOMS) {
+                const points = ROOM_OBJECT_POINTS[room.id] || [];
+                state.objectsByRoom[room.id] = room.objects.map((name, index) => ({
+                    id: index,
+                    roomId: room.id,
+                    name,
+                    status: "intact",
+                    inspected: false,
+                    mapX: points[index] ? points[index][0] : 0.15 + (index % 4) * 0.2,
+                    mapY: points[index] ? points[index][1] : 0.65 + Math.floor(index / 4) * 0.17
+                }));
+            }
         }
 
         function setMode(nextMode) {
@@ -506,6 +708,12 @@
                 if (mission.id === "recover") {
                     mission.done = state.repairedCount >= 6;
                 }
+                if (mission.id === "explorer") {
+                    mission.done = state.visitedRooms.size === ROOMS.length;
+                }
+                if (mission.id === "inspector") {
+                    mission.done = state.inspectedCount >= 6;
+                }
                 if (mission.id === "pacifist") {
                     mission.done = state.interactions === 0 && state.timeLeft <= 0 && allClean();
                 }
@@ -520,23 +728,152 @@
         }
 
         function renderObjects() {
-            objectGrid.innerHTML = "";
-            for (const item of state.objects) {
-                const card = document.createElement("article");
-                card.className = `object ${item.status}`;
-                card.dataset.id = String(item.id);
-                card.innerHTML = `
-          <div class="name">${item.name}</div>
-          <div class="state">${item.status.toUpperCase()}</div>
+            objectLayer.innerHTML = "";
+            for (const item of getCurrentObjects()) {
+                const node = document.createElement("button");
+                node.className = `map-object ${item.status}`;
+                node.dataset.id = String(item.id);
+                node.style.left = `${item.mapX * 100}%`;
+                node.style.top = `${item.mapY * 100}%`;
+                node.innerHTML = `
+          <span class="obj-name">${item.name}</span>
+          <span class="obj-state">${item.status.toUpperCase()}${item.inspected ? " | INSPECTED" : ""}</span>
         `;
-                objectGrid.appendChild(card);
+                objectLayer.appendChild(node);
             }
+            updateNearbyHighlights();
+        }
+
+        function renderRoomTabs() {
+            roomTabs.innerHTML = "";
+            for (const room of ROOMS) {
+                const button = document.createElement("button");
+                button.className = `room-tab ${room.id === state.currentRoomId ? "active" : ""}`;
+                button.textContent = room.name;
+                button.addEventListener("click", () => switchRoom(room.id));
+                roomTabs.appendChild(button);
+            }
+            roomTag.textContent = `Room: ${getCurrentRoom().name}`;
+            roomArea.classList.remove("room-living", "room-kitchen", "room-study");
+            roomArea.classList.add(`room-${state.currentRoomId}`);
+            navHint.textContent = `Arrow keys to move. You are in ${getCurrentRoom().name}.`;
+        }
+
+        function switchRoom(roomId) {
+            if (roomId === state.currentRoomId) return;
+            state.currentRoomId = roomId;
+            state.visitedRooms.add(roomId);
+            state.justTeleportedAt = performance.now();
+            clearDrops();
+            renderRoomTabs();
+            renderObjects();
+            if (state.running) {
+                addLog(`You moved to ${getCurrentRoom().name}.`);
+            }
+            updateMissions();
+            updateStats();
+        }
+
+        function clampPlayerToScene() {
+            const maxX = roomScene.clientWidth - 12;
+            const maxY = roomScene.clientHeight - 12;
+            state.player.x = Math.max(12, Math.min(maxX, state.player.x));
+            state.player.y = Math.max(18, Math.min(maxY, state.player.y));
+        }
+
+        function renderPlayer() {
+            playerToken.style.left = `${state.player.x}px`;
+            playerToken.style.top = `${state.player.y}px`;
+            const moving = state.pressed.up || state.pressed.down || state.pressed.left || state.pressed.right;
+            playerToken.classList.toggle("moving", moving);
+            updateNearbyHighlights();
+        }
+
+        function getObjectPixelPosition(item) {
+            return {
+                x: item.mapX * roomScene.clientWidth,
+                y: item.mapY * roomScene.clientHeight
+            };
+        }
+
+        function getDistanceToObject(item) {
+            const pos = getObjectPixelPosition(item);
+            const dx = pos.x - state.player.x;
+            const dy = pos.y - state.player.y;
+            return Math.hypot(dx, dy);
+        }
+
+        function isPlayerNear(item) {
+            return getDistanceToObject(item) <= 92;
+        }
+
+        function updateNearbyHighlights() {
+            for (const node of objectLayer.querySelectorAll(".map-object")) {
+                const item = getCurrentObjects().find((obj) => obj.id === Number(node.dataset.id));
+                if (!item) continue;
+                node.classList.toggle("near", isPlayerNear(item));
+            }
+        }
+
+        function getMapObjectFromEvent(event) {
+            const card = event.target.closest(".map-object");
+            if (!card) return null;
+            return getCurrentObjects().find((obj) => obj.id === Number(card.dataset.id)) || null;
+        }
+
+        function attemptDoorTransition() {
+            if (!state.running) return;
+            const now = performance.now();
+            if (now - state.justTeleportedAt < 380) return;
+
+            const roomIndex = ROOMS.findIndex((room) => room.id === state.currentRoomId);
+            if (state.player.x <= 13 && roomIndex > 0) {
+                switchRoom(ROOMS[roomIndex - 1].id);
+                state.player.x = roomScene.clientWidth - 18;
+                clampPlayerToScene();
+                renderPlayer();
+            }
+            if (state.player.x >= roomScene.clientWidth - 13 && roomIndex < ROOMS.length - 1) {
+                switchRoom(ROOMS[roomIndex + 1].id);
+                state.player.x = 18;
+                clampPlayerToScene();
+                renderPlayer();
+            }
+        }
+
+        function movementTick() {
+            if (!state.running) {
+                state.movementFrame = requestAnimationFrame(movementTick);
+                return;
+            }
+
+            if (state.pressed.up) state.player.y -= state.player.speed;
+            if (state.pressed.down) state.player.y += state.player.speed;
+            if (state.pressed.left) state.player.x -= state.player.speed;
+            if (state.pressed.right) state.player.x += state.player.speed;
+
+            clampPlayerToScene();
+            attemptDoorTransition();
+            renderPlayer();
+            state.movementFrame = requestAnimationFrame(movementTick);
+        }
+
+        function countDirtyRooms() {
+            let dirty = 0;
+            for (const room of ROOMS) {
+                const objects = state.objectsByRoom[room.id] || [];
+                if (objects.some((item) => item.status !== "intact")) {
+                    dirty += 1;
+                }
+            }
+            return dirty;
         }
 
         function updateStats() {
             scoreStat.textContent = `Score: ${state.score}`;
             glueStat.textContent = `Glue: ${state.glue}`;
             timeStat.textContent = `Time: ${Math.max(0, state.timeLeft)}`;
+            roomStat.textContent = `Dirty Rooms: ${countDirtyRooms()}`;
             const ratio = Math.max(0, state.timeLeft / GAME_SECONDS);
             timeFill.style.transform = `scaleX(${ratio})`;
         }
@@ -607,7 +944,13 @@
         }
 
         function allClean() {
-            return state.objects.every((item) => item.status === "intact");
+            for (const room of ROOMS) {
+                const objects = state.objectsByRoom[room.id] || [];
+                if (!objects.every((item) => item.status === "intact")) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         function spawnGlueDrop() {
@@ -617,8 +960,8 @@
             drop.className = "glue-drop";
             drop.textContent = "GLUE";
 
-            const x = Math.random() * (roomArea.clientWidth - 70) + 18;
-            const y = Math.random() * (roomArea.clientHeight - 120) + 64;
+            const x = Math.random() * (roomScene.clientWidth - 50) + 14;
+            const y = Math.random() * (roomScene.clientHeight - 50) + 14;
             drop.style.left = `${x}px`;
             drop.style.top = `${y}px`;
 
@@ -642,7 +985,7 @@
                 updateStats();
             });
 
-            roomArea.appendChild(drop);
+            roomScene.appendChild(drop);
         }
 
         function clearDrops() {
@@ -650,7 +993,7 @@
                 clearTimeout(timeoutId);
                 state.activeDrops.delete(id);
             }
-            for (const node of roomArea.querySelectorAll(".glue-drop")) {
+            for (const node of roomScene.querySelectorAll(".glue-drop")) {
                 node.remove();
             }
         }
@@ -659,6 +1002,7 @@
             state.running = false;
             clearInterval(state.tickTimer);
             clearInterval(state.dropTimer);
+            clearInterval(state.eventTimer);
             clearDrops();
 
             const clean = allClean();
@@ -694,8 +1038,80 @@
             }
         }
 
+        function runChaosEvent() {
+            if (!state.running) return;
+            const room = ROOMS[Math.floor(Math.random() * ROOMS.length)];
+            const roomObjects = state.objectsByRoom[room.id] || [];
+            const candidates = roomObjects.filter((item) => item.status === "intact");
+            if (candidates.length === 0) return;
+            const victim = candidates[Math.floor(Math.random() * candidates.length)];
+            victim.status = "knocked";
+            addLog(`A pet zoomed through ${room.name} and knocked ${victim.name}.`);
+            if (room.id === state.currentRoomId) {
+                renderObjects();
+            }
+            updateStats();
+        }
+
+        function inspectObject(item) {
+            if (!state.running) return;
+            if (!item.inspected) {
+                item.inspected = true;
+                state.inspectedCount += 1;
+                state.score += 2;
+                addLog(`You inspected ${item.name} for damage clues.`);
+                if (Math.random() < 0.28) {
+                    state.glue += 1;
+                    addLog(`Inspection bonus: found hidden super glue near ${item.name}.`);
+                }
+            } else {
+                addLog(`${item.name} was already inspected.`);
+            }
+            updateMissions();
+            renderObjects();
+            updateStats();
+        }
+
+        function quickTidy() {
+            if (!state.running) return;
+            const knocked = getCurrentObjects().find((item) => item.status === "knocked");
+            state.timeLeft = Math.max(0, state.timeLeft - 2);
+            if (!knocked) {
+                addLog("Quick tidy found nothing to stand up in this room.");
+                updateStats();
+                return;
+            }
+            knocked.status = "intact";
+            state.repairedCount += 1;
+            state.score += 11;
+            addLog(`Quick tidy restored ${knocked.name}.`);
+            updateMissions();
+            renderObjects();
+            updateStats();
+            if (state.timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function searchRoom() {
+            if (!state.running) return;
+            state.timeLeft = Math.max(0, state.timeLeft - 3);
+            if (Math.random() < 0.62) {
+                state.glue += 1;
+                state.score += 4;
+                addLog(`You searched ${getCurrentRoom().name} and found glue.`);
+            } else {
+                addLog(`You searched ${getCurrentRoom().name} and found nothing useful.`);
+            }
+            updateStats();
+            if (state.timeLeft <= 0) {
+                endGame();
+            }
+        }
+
         function runGame() {
             state.running = true;
+            state.currentRoomId = ROOMS[0].id;
             state.timeLeft = GAME_SECONDS;
             state.score = 0;
             state.glue = 0;
@@ -703,13 +1119,20 @@
             state.knockedCount = 0;
             state.shatteredCount = 0;
             state.repairedCount = 0;
+            state.inspectedCount = 0;
+            state.visitedRooms = new Set([ROOMS[0].id]);
+            state.player.x = Math.max(18, Math.floor(roomScene.clientWidth * 0.22));
+            state.player.y = Math.max(28, Math.floor(roomScene.clientHeight * 0.55));
+            state.pressed = { up: false, down: false, left: false, right: false };
             state.missions.forEach((m) => (m.done = false));
             eventLog.innerHTML = "";
             endOverlay.classList.add("hidden");
             startOverlay.classList.add("hidden");
             clearDrops();
             resetObjects();
+            renderRoomTabs();
             renderObjects();
+            renderPlayer();
             setMode("mess");
             updateStats();
             updateMissions();
@@ -717,6 +1140,7 @@
 
             clearInterval(state.tickTimer);
             clearInterval(state.dropTimer);
+            clearInterval(state.eventTimer);
             state.tickTimer = setInterval(tick, 1000);
 
             state.dropTimer = setInterval(() => {
@@ -724,14 +1148,22 @@
                     spawnGlueDrop();
                 }
             }, 3000);
+
+            state.eventTimer = setInterval(() => {
+                if (Math.random() < 0.55) {
+                    runChaosEvent();
+                }
+            }, 7000);
         }
 
-        objectGrid.addEventListener("click", (event) => {
+        objectLayer.addEventListener("click", (event) => {
             if (!state.running) return;
-            const card = event.target.closest(".object");
-            if (!card) return;
-            const item = state.objects.find((obj) => obj.id === Number(card.dataset.id));
+            const item = getMapObjectFromEvent(event);
             if (!item) return;
+            if (!isPlayerNear(item)) {
+                addLog(`Too far away from ${item.name}. Move closer first.`);
+                return;
+            }
 
             if (state.mode === "mess") {
                 applyMess(item);
@@ -744,13 +1176,26 @@
             updateStats();
         });
 
-        roomArea.addEventListener("contextmenu", (event) => {
+        objectLayer.addEventListener("dblclick", (event) => {
+            if (!state.running) return;
+            const item = getMapObjectFromEvent(event);
+            if (!item) return;
+            if (!isPlayerNear(item)) {
+                addLog(`Can't inspect ${item.name} from here.`);
+                return;
+            }
+            inspectObject(item);
+        });
+
+        objectLayer.addEventListener("contextmenu", (event) => {
             event.preventDefault();
             if (!state.running) return;
-            const card = event.target.closest(".object");
-            if (!card) return;
-            const item = state.objects.find((obj) => obj.id === Number(card.dataset.id));
+            const item = getMapObjectFromEvent(event);
             if (!item) return;
+            if (!isPlayerNear(item)) {
+                addLog(`Too far away from ${item.name}.`);
+                return;
+            }
             applyFix(item);
             updateMissions();
             renderObjects();
@@ -758,19 +1203,42 @@
         });
 
         document.addEventListener("keydown", (event) => {
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+                event.preventDefault();
+            }
             if (event.key.toLowerCase() === "m") setMode("mess");
             if (event.key.toLowerCase() === "f") setMode("fix");
+            if (event.key === "1") switchRoom(ROOMS[0].id);
+            if (event.key === "2") switchRoom(ROOMS[1].id);
+            if (event.key === "3") switchRoom(ROOMS[2].id);
+            if (event.key === "ArrowUp") state.pressed.up = true;
+            if (event.key === "ArrowDown") state.pressed.down = true;
+            if (event.key === "ArrowLeft") state.pressed.left = true;
+            if (event.key === "ArrowRight") state.pressed.right = true;
+        });
+
+        document.addEventListener("keyup", (event) => {
+            if (event.key === "ArrowUp") state.pressed.up = false;
+            if (event.key === "ArrowDown") state.pressed.down = false;
+            if (event.key === "ArrowLeft") state.pressed.left = false;
+            if (event.key === "ArrowRight") state.pressed.right = false;
         });
 
         startBtn.addEventListener("click", runGame);
         restartBtn.addEventListener("click", runGame);
         messModeBtn.addEventListener("click", () => setMode("mess"));
         fixModeBtn.addEventListener("click", () => setMode("fix"));
+        quickTidyBtn.addEventListener("click", quickTidy);
+        searchRoomBtn.addEventListener("click", searchRoom);
 
         resetObjects();
+        renderRoomTabs();
         renderObjects();
+        renderPlayer();
         updateStats();
         updateMissions();
+
+        state.movementFrame = requestAnimationFrame(movementTick);
     </script>
 </body>
 
