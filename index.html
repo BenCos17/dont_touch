@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DON'T TOUCH</title>
+    <style>
+        :root {
+            --bg-1: #f4efe4;
+            --bg-2: #dce8d8;
+            --ink: #1c2321;
+            --card: #fff9f1;
+            --accent: #1b7f6b;
+            --danger: #b5312c;
+            --warn: #c17c00;
+            --good: #2d7f3f;
+            --line: rgba(28, 35, 33, 0.18);
+            --shadow: 0 14px 30px rgba(28, 35, 33, 0.16);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: "Rockwell", "Palatino Linotype", "Book Antiqua", serif;
+            background:
+                radial-gradient(circle at 8% 12%, rgba(37, 128, 101, 0.22) 0 20%, transparent 21%),
+                radial-gradient(circle at 88% 82%, rgba(181, 49, 44, 0.20) 0 24%, transparent 25%),
+                linear-gradient(160deg, var(--bg-1), var(--bg-2));
+            display: grid;
+            place-items: center;
+            padding: 18px;
+        }
+
+        .game-shell {
+            width: min(1100px, 100%);
+            border: 2px solid var(--line);
+            border-radius: 20px;
+            background: linear-gradient(165deg, rgba(255, 255, 255, 0.88), rgba(255, 251, 245, 0.84));
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            backdrop-filter: blur(3px);
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .title {
+            font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+            letter-spacing: 0.04em;
+            margin-right: auto;
+            font-weight: 700;
+        }
+
+        .stat {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 12px;
+            background: var(--card);
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 290px;
+            min-height: 600px;
+        }
+
+        .room {
+            position: relative;
+            padding: 18px;
+            border-right: 1px solid var(--line);
+            background:
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.62), rgba(232, 241, 232, 0.65)),
+                repeating-linear-gradient(45deg,
+                    rgba(28, 35, 33, 0.03),
+                    rgba(28, 35, 33, 0.03) 8px,
+                    transparent 8px,
+                    transparent 18px);
+        }
+
+        .time-wrap {
+            margin-bottom: 14px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.62);
+            overflow: hidden;
+        }
+
+        .time-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #2c9a75, #d08c00, #b5312c);
+            transform-origin: left center;
+            transition: transform 0.2s linear;
+        }
+
+        .object-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .object {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--card);
+            min-height: 110px;
+            padding: 10px;
+            display: grid;
+            align-content: space-between;
+            cursor: pointer;
+            transform: translateY(0);
+            transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+            user-select: none;
+        }
+
+        .object:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(28, 35, 33, 0.10);
+        }
+
+        .object .name {
+            font-size: 0.98rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .object .state {
+            font-size: 0.85rem;
+            opacity: 0.88;
+        }
+
+        .object.intact {
+            border-color: rgba(45, 127, 63, 0.35);
+        }
+
+        .object.knocked {
+            border-color: rgba(193, 124, 0, 0.55);
+            background: #fff3df;
+        }
+
+        .object.shattered {
+            border-color: rgba(181, 49, 44, 0.62);
+            background: #ffe9e6;
+            animation: jitter 220ms linear 1;
+        }
+
+        @keyframes jitter {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-2px);
+            }
+
+            50% {
+                transform: translateX(2px);
+            }
+
+            75% {
+                transform: translateX(-1px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .side {
+            padding: 16px;
+            display: grid;
+            grid-template-rows: auto auto auto 1fr;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.45);
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            background: rgba(255, 251, 245, 0.88);
+        }
+
+        .panel h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+
+        .panel p,
+        .panel li {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.35;
+        }
+
+        .panel ul {
+            margin: 0;
+            padding-left: 18px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font: inherit;
+            background: var(--card);
+            cursor: pointer;
+            transition: transform 100ms ease, background 100ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            background: #fff;
+        }
+
+        button.active {
+            background: #e4f3ed;
+            border-color: rgba(27, 127, 107, 0.6);
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(17, 20, 19, 0.38);
+            padding: 16px;
+        }
+
+        .modal {
+            width: min(620px, 100%);
+            border: 2px solid rgba(255, 255, 255, 0.38);
+            border-radius: 18px;
+            background: rgba(255, 252, 247, 0.98);
+            box-shadow: 0 18px 32px rgba(11, 19, 17, 0.25);
+            padding: 18px;
+            animation: rise 300ms ease;
+        }
+
+        @keyframes rise {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal h2 {
+            margin: 0 0 10px;
+        }
+
+        .modal p {
+            margin: 0 0 8px;
+            line-height: 1.4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .glue-drop {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 1px solid rgba(28, 35, 33, 0.35);
+            background: radial-gradient(circle at 36% 32%, #fff9ca, #f0d74a);
+            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.16);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            animation: bob 1.5s ease-in-out infinite;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+
+        .log {
+            max-height: 220px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+
+        .log p {
+            margin: 0 0 6px;
+        }
+
+        @media (max-width: 930px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .room {
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .object-grid {
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="game-shell">
+        <header class="top-bar">
+            <div class="title">DON'T TOUCH</div>
+            <div class="stat" id="scoreStat">Score: 0</div>
+            <div class="stat" id="glueStat">Glue: 0</div>
+            <div class="stat" id="timeStat">Time: 75</div>
+        </header>
+
+        <section class="layout">
+            <section class="room" id="roomArea">
+                <div class="time-wrap">
+                    <div class="time-fill" id="timeFill"></div>
+                </div>
+                <div class="object-grid" id="objectGrid"></div>
+
+                <div class="overlay" id="startOverlay">
+                    <div class="modal">
+                        <h2>House-Sit Disaster Simulator</h2>
+                        <p>Touch objects to make a mess. Before the host returns, everything must look perfect.</p>
+                        <p><strong>Mess mode:</strong> click an object to knock or shatter it.</p>
+                        <p><strong>Fix mode:</strong> click a knocked item to stand it up, or a shattered item to repair
+                            it with glue.</p>
+                        <p>Use mode buttons on mobile or desktop. Survive 75 seconds with no visible damage.</p>
+                        <button id="startBtn">Start Run</button>
+                    </div>
+                </div>
+
+                <div class="overlay hidden" id="endOverlay">
+                    <div class="modal">
+                        <h2 id="resultTitle">Result</h2>
+                        <p id="resultSummary"></p>
+                        <p id="resultScore"></p>
+                        <button id="restartBtn">Play Again</button>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="side">
+                <section class="panel">
+                    <h3>Action Mode</h3>
+                    <div class="controls">
+                        <button id="messModeBtn" class="active">Mess</button>
+                        <button id="fixModeBtn">Fix</button>
+                    </div>
+                    <p style="margin-top:8px;">Shortcut: press <strong>M</strong> or <strong>F</strong>.</p>
+                </section>
+
+                <section class="panel">
+                    <h3>Missions</h3>
+                    <ul id="missionList"></ul>
+                </section>
+
+                <section class="panel">
+                    <h3>How It Works</h3>
+                    <p>If the NPC sees anything out of place when time ends, you fail instantly.</p>
+                    <p style="margin-top:8px;">Grab floating glue drops before they vanish to repair shattered objects.
+                    </p>
+                </section>
+
+                <section class="panel">
+                    <h3>Event Log</h3>
+                    <div class="log" id="eventLog"></div>
+                </section>
+            </aside>
+        </section>
+    </main>
+
+    <script>
+        const GAME_SECONDS = 75;
+        const GLUE_LIFETIME = 6500;
+
+        const OBJECT_NAMES = [
+            "Ceramic Vase",
+            "Desk Lamp",
+            "Photo Frame",
+            "Tea Cup",
+            "Potted Fern",
+            "Stacked Books",
+            "Wall Clock",
+            "Glass Bowl",
+            "Speaker",
+            "Antique Statue",
+            "Chess Set",
+            "Table Mirror"
+        ];
+
+        const state = {
+            running: false,
+            mode: "mess",
+            timeLeft: GAME_SECONDS,
+            score: 0,
+            glue: 0,
+            objects: [],
+            interactions: 0,
+            knockedCount: 0,
+            shatteredCount: 0,
+            repairedCount: 0,
+            activeDrops: new Map(),
+            tickTimer: null,
+            dropTimer: null,
+            missions: [
+                { id: "chaos", text: "Cause 8+ mess actions", done: false },
+                { id: "smash", text: "Shatter 4 objects", done: false },
+                { id: "recover", text: "Repair or tidy 6 objects", done: false },
+                { id: "pacifist", text: "Win with 0 interactions", done: false }
+            ]
+        };
+
+        const objectGrid = document.getElementById("objectGrid");
+        const roomArea = document.getElementById("roomArea");
+        const scoreStat = document.getElementById("scoreStat");
+        const glueStat = document.getElementById("glueStat");
+        const timeStat = document.getElementById("timeStat");
+        const timeFill = document.getElementById("timeFill");
+        const missionList = document.getElementById("missionList");
+        const eventLog = document.getElementById("eventLog");
+
+        const startOverlay = document.getElementById("startOverlay");
+        const endOverlay = document.getElementById("endOverlay");
+        const resultTitle = document.getElementById("resultTitle");
+        const resultSummary = document.getElementById("resultSummary");
+        const resultScore = document.getElementById("resultScore");
+
+        const startBtn = document.getElementById("startBtn");
+        const restartBtn = document.getElementById("restartBtn");
+        const messModeBtn = document.getElementById("messModeBtn");
+        const fixModeBtn = document.getElementById("fixModeBtn");
+
+        function resetObjects() {
+            state.objects = OBJECT_NAMES.map((name, index) => ({
+                id: index,
+                name,
+                status: "intact"
+            }));
+        }
+
+        function setMode(nextMode) {
+            state.mode = nextMode;
+            messModeBtn.classList.toggle("active", nextMode === "mess");
+            fixModeBtn.classList.toggle("active", nextMode === "fix");
+        }
+
+        function addLog(message) {
+            const p = document.createElement("p");
+            const timeStamp = `${Math.max(0, state.timeLeft).toString().padStart(2, "0")}s`;
+            p.textContent = `[${timeStamp}] ${message}`;
+            eventLog.prepend(p);
+        }
+
+        function updateMissions() {
+            state.missions.forEach((mission) => {
+                if (mission.id === "chaos") {
+                    mission.done = state.interactions >= 8;
+                }
+                if (mission.id === "smash") {
+                    mission.done = state.shatteredCount >= 4;
+                }
+                if (mission.id === "recover") {
+                    mission.done = state.repairedCount >= 6;
+                }
+                if (mission.id === "pacifist") {
+                    mission.done = state.interactions === 0 && state.timeLeft <= 0 && allClean();
+                }
+            });
+
+            missionList.innerHTML = "";
+            for (const mission of state.missions) {
+                const li = document.createElement("li");
+                li.textContent = `${mission.done ? "[x]" : "[ ]"} ${mission.text}`;
+                missionList.appendChild(li);
+            }
+        }
+
+        function renderObjects() {
+            objectGrid.innerHTML = "";
+            for (const item of state.objects) {
+                const card = document.createElement("article");
+                card.className = `object ${item.status}`;
+                card.dataset.id = String(item.id);
+                card.innerHTML = `
+          <div class="name">${item.name}</div>
+          <div class="state">${item.status.toUpperCase()}</div>
+        `;
+                objectGrid.appendChild(card);
+            }
+        }
+
+        function updateStats() {
+            scoreStat.textContent = `Score: ${state.score}`;
+            glueStat.textContent = `Glue: ${state.glue}`;
+            timeStat.textContent = `Time: ${Math.max(0, state.timeLeft)}`;
+            const ratio = Math.max(0, state.timeLeft / GAME_SECONDS);
+            timeFill.style.transform = `scaleX(${ratio})`;
+        }
+
+        function applyMess(item) {
+            if (item.status === "shattered") {
+                addLog(`${item.name} is already in pieces.`);
+                return;
+            }
+
+            state.interactions += 1;
+
+            if (item.status === "intact") {
+                if (Math.random() < 0.34) {
+                    item.status = "shattered";
+                    state.shatteredCount += 1;
+                    state.score += 22;
+                    addLog(`You shattered ${item.name}.`);
+                    spawnGlueDrop();
+                } else {
+                    item.status = "knocked";
+                    state.knockedCount += 1;
+                    state.score += 12;
+                    addLog(`You knocked over ${item.name}.`);
+                }
+                return;
+            }
+
+            if (item.status === "knocked") {
+                if (Math.random() < 0.42) {
+                    item.status = "shattered";
+                    state.shatteredCount += 1;
+                    state.score += 18;
+                    addLog(`${item.name} slipped and shattered.`);
+                    spawnGlueDrop();
+                } else {
+                    state.score += 8;
+                    addLog(`${item.name} scrapes loudly but stays knocked.`);
+                }
+            }
+        }
+
+        function applyFix(item) {
+            if (item.status === "intact") {
+                addLog(`${item.name} is already perfect.`);
+                return;
+            }
+
+            if (item.status === "knocked") {
+                item.status = "intact";
+                state.repairedCount += 1;
+                state.score += 10;
+                addLog(`You stood ${item.name} back up.`);
+                return;
+            }
+
+            if (item.status === "shattered") {
+                if (state.glue < 1) {
+                    addLog(`No glue left for ${item.name}.`);
+                    return;
+                }
+                state.glue -= 1;
+                item.status = "intact";
+                state.repairedCount += 1;
+                state.score += 16;
+                addLog(`You glued ${item.name} back together.`);
+            }
+        }
+
+        function allClean() {
+            return state.objects.every((item) => item.status === "intact");
+        }
+
+        function spawnGlueDrop() {
+            if (!state.running || state.activeDrops.size >= 3) return;
+
+            const drop = document.createElement("button");
+            drop.className = "glue-drop";
+            drop.textContent = "GLUE";
+
+            const x = Math.random() * (roomArea.clientWidth - 70) + 18;
+            const y = Math.random() * (roomArea.clientHeight - 120) + 64;
+            drop.style.left = `${x}px`;
+            drop.style.top = `${y}px`;
+
+            const id = crypto.randomUUID();
+            const timeoutId = setTimeout(() => {
+                state.activeDrops.delete(id);
+                drop.remove();
+            }, GLUE_LIFETIME);
+
+            state.activeDrops.set(id, timeoutId);
+
+            drop.addEventListener("click", (event) => {
+                event.stopPropagation();
+                if (!state.running) return;
+                clearTimeout(timeoutId);
+                state.activeDrops.delete(id);
+                drop.remove();
+                state.glue += 1;
+                state.score += 5;
+                addLog("You grabbed a tube of super glue.");
+                updateStats();
+            });
+
+            roomArea.appendChild(drop);
+        }
+
+        function clearDrops() {
+            for (const [id, timeoutId] of state.activeDrops.entries()) {
+                clearTimeout(timeoutId);
+                state.activeDrops.delete(id);
+            }
+            for (const node of roomArea.querySelectorAll(".glue-drop")) {
+                node.remove();
+            }
+        }
+
+        function endGame() {
+            state.running = false;
+            clearInterval(state.tickTimer);
+            clearInterval(state.dropTimer);
+            clearDrops();
+
+            const clean = allClean();
+            updateMissions();
+
+            if (!clean) {
+                resultTitle.textContent = "FAIL: You Got Caught";
+                resultSummary.textContent = "The NPC came back and spotted your mess.";
+            } else if (state.interactions === 0) {
+                resultTitle.textContent = "WIN: Suspiciously Innocent";
+                resultSummary.textContent = "You touched absolutely nothing and survived.";
+                state.score += 45;
+            } else {
+                resultTitle.textContent = "WIN: Clean Escape";
+                resultSummary.textContent = "Everything looked perfect before the return.";
+                state.score += 25;
+            }
+
+            const missionBonus = state.missions.filter((m) => m.done).length * 20;
+            state.score += missionBonus;
+            resultScore.textContent = `Final Score: ${state.score} (Mission Bonus: ${missionBonus})`;
+            updateStats();
+            endOverlay.classList.remove("hidden");
+        }
+
+        function tick() {
+            state.timeLeft -= 1;
+            updateStats();
+            updateMissions();
+
+            if (state.timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function runGame() {
+            state.running = true;
+            state.timeLeft = GAME_SECONDS;
+            state.score = 0;
+            state.glue = 0;
+            state.interactions = 0;
+            state.knockedCount = 0;
+            state.shatteredCount = 0;
+            state.repairedCount = 0;
+            state.missions.forEach((m) => (m.done = false));
+            eventLog.innerHTML = "";
+            endOverlay.classList.add("hidden");
+            startOverlay.classList.add("hidden");
+            clearDrops();
+            resetObjects();
+            renderObjects();
+            setMode("mess");
+            updateStats();
+            updateMissions();
+            addLog("Run started. Stay calm.");
+
+            clearInterval(state.tickTimer);
+            clearInterval(state.dropTimer);
+            state.tickTimer = setInterval(tick, 1000);
+
+            state.dropTimer = setInterval(() => {
+                if (Math.random() < 0.45) {
+                    spawnGlueDrop();
+                }
+            }, 3000);
+        }
+
+        objectGrid.addEventListener("click", (event) => {
+            if (!state.running) return;
+            const card = event.target.closest(".object");
+            if (!card) return;
+            const item = state.objects.find((obj) => obj.id === Number(card.dataset.id));
+            if (!item) return;
+
+            if (state.mode === "mess") {
+                applyMess(item);
+            } else {
+                applyFix(item);
+            }
+
+            updateMissions();
+            renderObjects();
+            updateStats();
+        });
+
+        roomArea.addEventListener("contextmenu", (event) => {
+            event.preventDefault();
+            if (!state.running) return;
+            const card = event.target.closest(".object");
+            if (!card) return;
+            const item = state.objects.find((obj) => obj.id === Number(card.dataset.id));
+            if (!item) return;
+            applyFix(item);
+            updateMissions();
+            renderObjects();
+            updateStats();
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key.toLowerCase() === "m") setMode("mess");
+            if (event.key.toLowerCase() === "f") setMode("fix");
+        });
+
+        startBtn.addEventListener("click", runGame);
+        restartBtn.addEventListener("click", runGame);
+        messModeBtn.addEventListener("click", () => setMode("mess"));
+        fixModeBtn.addEventListener("click", () => setMode("fix"));
+
+        resetObjects();
+        renderObjects();
+        updateStats();
+        updateMissions();
+    </script>
+</body>
+
+</html>
