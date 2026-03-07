@@ -194,6 +194,50 @@
                 0 8px 18px rgba(21, 26, 25, 0.18);
         }
 
+        .walk-lane {
+            position: absolute;
+            left: 3.5%;
+            right: 3.5%;
+            bottom: 4%;
+            height: 28%;
+            border-radius: 50% 50% 24% 24% / 56% 56% 18% 18%;
+            background:
+                radial-gradient(ellipse at 50% 40%, rgba(255, 230, 168, 0.24), transparent 56%),
+                linear-gradient(to bottom, rgba(20, 31, 29, 0.02), rgba(20, 31, 29, 0.2));
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .scene-target {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            background: rgba(27, 127, 107, 0.95);
+            box-shadow: 0 0 0 6px rgba(27, 127, 107, 0.22);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 7;
+            transition: opacity 140ms ease;
+        }
+
+        .scene-target.show {
+            opacity: 1;
+            animation: ping-target 0.55s ease;
+        }
+
+        @keyframes ping-target {
+            0% {
+                transform: translate(-50%, -50%) scale(0.35);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
         .room-scene::before,
         .room-scene::after {
             content: "";
@@ -227,6 +271,40 @@
             background: rgba(255, 255, 255, 0.84);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
             z-index: 7;
+        }
+
+        .door-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 80px;
+            border: 1px solid rgba(255, 255, 255, 0.34);
+            border-radius: 12px;
+            background: linear-gradient(to bottom, rgba(26, 34, 32, 0.6), rgba(10, 14, 13, 0.52));
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 7;
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.26);
+            transition: transform 120ms ease, opacity 120ms ease;
+        }
+
+        .door-arrow:hover {
+            transform: translateY(-50%) scale(1.04);
+        }
+
+        .door-arrow.left {
+            left: 8px;
+        }
+
+        .door-arrow.right {
+            right: 8px;
+        }
+
+        .door-arrow.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .object-layer {
@@ -581,9 +659,13 @@
                 </div>
                 <div class="room-tag" id="roomTag">Room: Living Room</div>
                 <div class="room-scene" id="roomScene">
-                    <div class="nav-hint" id="navHint">Arrow keys move. E acts. Q inspects. Reach edges to change rooms.
+                    <div class="nav-hint" id="navHint">Arrow keys or click floor to move. E acts. Q inspects.
                     </div>
+                    <div class="walk-lane" aria-hidden="true"></div>
                     <div class="object-layer" id="objectLayer"></div>
+                    <div class="scene-target" id="sceneTarget"></div>
+                    <button class="door-arrow left" id="leftDoorBtn" aria-label="Go to previous room">&#9664;</button>
+                    <button class="door-arrow right" id="rightDoorBtn" aria-label="Go to next room">&#9654;</button>
                     <div class="player-token" id="playerToken"></div>
                 </div>
 
@@ -599,6 +681,8 @@
                             finds.</p>
                         <p><strong>Move:</strong> use arrow keys to walk; hit left/right room edges to pass through
                             doors.</p>
+                        <p><strong>Flash style nav:</strong> click the floor to walk and use side arrows for door
+                            travel.</p>
                         <p><strong>Keyboard play:</strong> press <strong>E</strong> for nearest action and
                             <strong>Q</strong>
                             to inspect nearest object.
@@ -730,7 +814,7 @@
             inspectedCount: 0,
             activeDrops: new Map(),
             visitedRooms: new Set(),
-            player: { x: 140, y: 80, speed: 4.2 },
+            player: { x: 140, y: 80, speed: 4.2, targetX: null, targetY: null, pathing: false },
             pressed: { up: false, down: false, left: false, right: false },
             tickTimer: null,
             dropTimer: null,
@@ -758,6 +842,9 @@
         const roomTabs = document.getElementById("roomTabs");
         const roomScene = document.getElementById("roomScene");
         const navHint = document.getElementById("navHint");
+        const sceneTarget = document.getElementById("sceneTarget");
+        const leftDoorBtn = document.getElementById("leftDoorBtn");
+        const rightDoorBtn = document.getElementById("rightDoorBtn");
         const playerToken = document.getElementById("playerToken");
         const missionList = document.getElementById("missionList");
         const eventLog = document.getElementById("eventLog");
@@ -871,7 +958,23 @@
             roomTag.textContent = `Room: ${getCurrentRoom().name}`;
             roomArea.classList.remove("room-living", "room-kitchen", "room-study");
             roomArea.classList.add(`room-${state.currentRoomId}`);
-            navHint.textContent = `Arrow keys to move. You are in ${getCurrentRoom().name}.`;
+            navHint.textContent = `Arrow keys or click floor to move. You are in ${getCurrentRoom().name}.`;
+            updateDoorButtons();
+            updateParallax();
+        }
+
+        function updateDoorButtons() {
+            const roomIndex = ROOMS.findIndex((room) => room.id === state.currentRoomId);
+            leftDoorBtn.classList.toggle("hidden", roomIndex <= 0);
+            rightDoorBtn.classList.toggle("hidden", roomIndex >= ROOMS.length - 1);
+        }
+
+        function updateParallax() {
+            const xRatio = roomScene.clientWidth > 0 ? state.player.x / roomScene.clientWidth : 0.5;
+            const yRatio = roomScene.clientHeight > 0 ? state.player.y / roomScene.clientHeight : 0.5;
+            const bgX = 50 + (xRatio - 0.5) * 8;
+            const bgY = 50 + (yRatio - 0.5) * 5;
+            roomArea.style.backgroundPosition = `center, ${bgX}% ${bgY}%`;
         }
 
         function switchRoom(roomId) {
@@ -879,6 +982,8 @@
             state.currentRoomId = roomId;
             state.visitedRooms.add(roomId);
             state.justTeleportedAt = performance.now();
+            state.player.pathing = false;
+            sceneTarget.classList.remove("show");
             clearDrops();
             renderRoomTabs();
             renderObjects();
@@ -893,7 +998,7 @@
             const maxX = roomScene.clientWidth - 12;
             const maxY = roomScene.clientHeight - 12;
             state.player.x = Math.max(12, Math.min(maxX, state.player.x));
-            state.player.y = Math.max(18, Math.min(maxY, state.player.y));
+            state.player.y = Math.max(92, Math.min(maxY, state.player.y));
         }
 
         function renderPlayer() {
@@ -902,6 +1007,23 @@
             const moving = state.pressed.up || state.pressed.down || state.pressed.left || state.pressed.right;
             playerToken.classList.toggle("moving", moving);
             updateNearbyHighlights();
+            updateParallax();
+        }
+
+        function setMoveTarget(x, y) {
+            state.player.targetX = x;
+            state.player.targetY = y;
+            state.player.pathing = true;
+            sceneTarget.style.left = `${x}px`;
+            sceneTarget.style.top = `${y}px`;
+            sceneTarget.classList.add("show");
+        }
+
+        function clearMoveTarget() {
+            state.player.pathing = false;
+            state.player.targetX = null;
+            state.player.targetY = null;
+            sceneTarget.classList.remove("show");
         }
 
         function getObjectPixelPosition(item) {
@@ -1003,6 +1125,22 @@
             if (!state.running) {
                 state.movementFrame = requestAnimationFrame(movementTick);
                 return;
+            }
+
+            const manualMoving = state.pressed.up || state.pressed.down || state.pressed.left || state.pressed.right;
+
+            if (state.player.pathing && !manualMoving) {
+                const dx = state.player.targetX - state.player.x;
+                const dy = state.player.targetY - state.player.y;
+                const distance = Math.hypot(dx, dy);
+                if (distance < state.player.speed + 0.5) {
+                    state.player.x = state.player.targetX;
+                    state.player.y = state.player.targetY;
+                    clearMoveTarget();
+                } else {
+                    state.player.x += (dx / distance) * state.player.speed;
+                    state.player.y += (dy / distance) * state.player.speed;
+                }
             }
 
             if (state.pressed.up) state.player.y -= state.player.speed;
@@ -1281,6 +1419,9 @@
             state.visitedRooms = new Set([ROOMS[0].id]);
             state.player.x = Math.max(18, Math.floor(roomScene.clientWidth * 0.22));
             state.player.y = Math.max(28, Math.floor(roomScene.clientHeight * 0.55));
+            state.player.targetX = null;
+            state.player.targetY = null;
+            state.player.pathing = false;
             state.pressed = { up: false, down: false, left: false, right: false };
             state.missions.forEach((m) => (m.done = false));
             eventLog.innerHTML = "";
@@ -1291,6 +1432,8 @@
             renderRoomTabs();
             renderObjects();
             renderPlayer();
+            updateDoorButtons();
+            updateParallax();
             setMode("mess");
             updateStats();
             updateMissions();
@@ -1334,6 +1477,20 @@
             updateStats();
         });
 
+        roomScene.addEventListener("click", (event) => {
+            if (!state.running) return;
+            if (event.target.closest(".map-object, .glue-drop, .door-arrow, .overlay, .modal")) {
+                return;
+            }
+            const rect = roomScene.getBoundingClientRect();
+            const targetX = event.clientX - rect.left;
+            const targetY = event.clientY - rect.top;
+            setMoveTarget(
+                Math.max(12, Math.min(roomScene.clientWidth - 12, targetX)),
+                Math.max(92, Math.min(roomScene.clientHeight - 12, targetY))
+            );
+        });
+
         objectLayer.addEventListener("dblclick", (event) => {
             if (!state.running) return;
             const item = getMapObjectFromEvent(event);
@@ -1363,6 +1520,7 @@
         document.addEventListener("keydown", (event) => {
             if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
                 event.preventDefault();
+                clearMoveTarget();
             }
             if (event.repeat && ["e", "q", "m", "f"].includes(event.key.toLowerCase())) {
                 return;
@@ -1378,6 +1536,24 @@
             if (event.key === "ArrowDown") state.pressed.down = true;
             if (event.key === "ArrowLeft") state.pressed.left = true;
             if (event.key === "ArrowRight") state.pressed.right = true;
+        });
+
+        leftDoorBtn.addEventListener("click", () => {
+            const roomIndex = ROOMS.findIndex((room) => room.id === state.currentRoomId);
+            if (roomIndex <= 0) return;
+            switchRoom(ROOMS[roomIndex - 1].id);
+            state.player.x = roomScene.clientWidth - 18;
+            clampPlayerToScene();
+            renderPlayer();
+        });
+
+        rightDoorBtn.addEventListener("click", () => {
+            const roomIndex = ROOMS.findIndex((room) => room.id === state.currentRoomId);
+            if (roomIndex >= ROOMS.length - 1) return;
+            switchRoom(ROOMS[roomIndex + 1].id);
+            state.player.x = 18;
+            clampPlayerToScene();
+            renderPlayer();
         });
 
         document.addEventListener("keyup", (event) => {
@@ -1398,6 +1574,8 @@
         renderRoomTabs();
         renderObjects();
         renderPlayer();
+        updateDoorButtons();
+        updateParallax();
         updateStats();
         updateMissions();
 
